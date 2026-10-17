@@ -1,5 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
-import { Check, ChevronDown, Clipboard, Download, GripVertical, ListChecks, Moon, Pencil, Plus, Search, Sun, Trash2, Upload, X, Zap } from 'lucide-react';
+import {
+  Add,
+  Bolt,
+  Check,
+  ChevronDown,
+  CloseCircle,
+  CloudUpload,
+  Copy,
+  Download,
+  Edit,
+  ListCheck,
+  Moon,
+  Reorder,
+  Search,
+  Sun,
+  Trash,
+  X
+} from 'reicon-react';
 import { DEFAULT_SKILLS, STORAGE_KEYS, STORAGE_LIMIT_BYTES, type SkillItem, type Theme } from '../../lib/types';
 
 const estimateBytes = (value: unknown) => new Blob([JSON.stringify(value)]).size;
@@ -138,7 +155,7 @@ function App() {
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
       if (!active || areaName !== 'local') return;
       const changedSkills = changes[STORAGE_KEYS.skills];
-      if (changedSkills) setSkills(Array.isArray(changedSkills.newValue) ? changedSkills.newValue as SkillItem[] : []);
+      if (changedSkills) setSkills(Array.isArray(changedSkills.newValue) ? (changedSkills.newValue as SkillItem[]) : []);
       const changedTheme = changes[STORAGE_KEYS.theme];
       if (changedTheme && (changedTheme.newValue === 'light' || changedTheme.newValue === 'dark')) {
         setTheme(changedTheme.newValue);
@@ -229,9 +246,10 @@ function App() {
   const selectedSkills = useMemo(() => skills.filter((skill) => selectedIds.has(skill.id)), [selectedIds, skills]);
   const allVisibleSelected = filteredSkills.length > 0 && filteredSkills.every((skill) => selectedIds.has(skill.id));
   const usedBytes = estimateBytes(skills);
-  const storageLabel = usedBytes >= 1024 * 1024
-    ? `${(usedBytes / (1024 * 1024)).toFixed(1)} MB`
-    : `${Math.max(1, Math.ceil(usedBytes / 1024))} KB`;
+  const storageLabel =
+    usedBytes >= 1024 * 1024
+      ? `${(usedBytes / (1024 * 1024)).toFixed(1)} MB`
+      : `${Math.max(1, Math.ceil(usedBytes / 1024))} KB`;
 
   const toggleTheme = async () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
@@ -246,8 +264,8 @@ function App() {
   const copyCommand = async (skill: SkillItem) => {
     if (await writeClipboard(skill.command)) {
       setCopiedId(skill.id);
-      showToast(`${skill.name} copied to clipboard`);
-      window.setTimeout(() => setCopiedId((current) => current === skill.id ? null : current), 1600);
+      showToast(`${skill.name} copied`);
+      window.setTimeout(() => setCopiedId((current) => (current === skill.id ? null : current)), 1500);
     } else {
       showToast('Copy failed — try again');
     }
@@ -255,11 +273,11 @@ function App() {
 
   const copyAsArray = async (items: SkillItem[], label: string) => {
     if (!items.length) {
-      showToast('There are no skills to copy');
+      showToast('No skills to copy');
       return;
     }
     const arrayText = JSON.stringify(items.map((skill) => skill.command), null, 2);
-    if (await writeClipboard(arrayText)) showToast(`${label} copied as a command array`);
+    if (await writeClipboard(arrayText)) showToast(`${label} copied as command array`);
     else showToast('Copy failed — try again');
   };
 
@@ -287,7 +305,7 @@ function App() {
       const cells = parseSingleColumnCsv(csv);
       const parsed = cells.map(parseSkillCell).filter((entry): entry is { name: string; command: string } => entry !== null);
       if (!parsed.length) {
-        showToast('No skill commands found in that CSV');
+        showToast('No skill commands found in CSV');
         return;
       }
 
@@ -306,14 +324,14 @@ function App() {
       }
 
       if (!additions.length) {
-        showToast(`Nothing new — ${skipped} duplicate ${skipped === 1 ? 'skill was' : 'skills were'} skipped`);
+        showToast(`Skipped ${skipped} duplicate ${skipped === 1 ? 'skill' : 'skills'}`);
         return;
       }
       if (await persistSkills([...skills, ...additions])) {
-        showToast(`Imported ${additions.length}; skipped ${skipped} duplicate ${skipped === 1 ? 'skill' : 'skills'}`);
+        showToast(`Imported ${additions.length} skills`);
       }
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Could not read that CSV file');
+      showToast(error instanceof Error ? error.message : 'Could not read CSV file');
     }
   };
 
@@ -362,7 +380,7 @@ function App() {
     if (!name || !command) return;
     let next: SkillItem[];
     if (editingId) {
-      next = skills.map((skill) => skill.id === editingId ? { ...skill, name, command } : skill);
+      next = skills.map((skill) => (skill.id === editingId ? { ...skill, name, command } : skill));
     } else {
       next = [...skills, { id: makeId(), name, command }];
     }
@@ -380,7 +398,7 @@ function App() {
         next.delete(id);
         return next;
       });
-      showToast(`${skill?.name ?? 'Skill'} removed`);
+      showToast(`${skill?.name ?? 'Skill'} deleted`);
     }
   };
 
@@ -413,133 +431,286 @@ function App() {
     <main className="app-shell">
       <header className="topbar">
         <div className="brand-lockup">
-          <div className="brand-mark"><Zap size={17} strokeWidth={2.5} fill="currentColor" /></div>
-          <div>
-            <p className="eyebrow">YOUR AGENT TOOLKIT</p>
-            <h1>Skill Shelf</h1>
+          <div className="brand-mark">
+            <Bolt size={18} />
           </div>
+          <h1>Skill Shelf</h1>
         </div>
-        <button className="icon-button theme-button" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`} title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>
+        <button
+          className="icon-button"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+        >
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
         </button>
       </header>
 
-      <section className="intro">
-        <div className="intro-copy">
-          <span className="live-dot" />
-          <span>Quick access, wherever you build</span>
-        </div>
-        <p>Keep your favorite agent skills close. Tap any command to copy it, then paste it into your agent chat.</p>
-      </section>
-
-      <section className="toolbar" aria-label="Skill list controls">
+      <section className="toolbar" aria-label="Skill search and add">
         <label className="search-box">
-          <Search size={16} aria-hidden="true" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search your skills" aria-label="Search skills" />
-          {query && <button type="button" className="search-clear" onClick={() => setQuery('')} aria-label="Clear search"><X size={14} /></button>}
+          <Search size={15} aria-hidden="true" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filter skills..."
+            aria-label="Filter skills"
+          />
+          {query && (
+            <button type="button" className="search-clear" onClick={() => setQuery('')} aria-label="Clear filter">
+              <CloseCircle size={14} />
+            </button>
+          )}
         </label>
-        <button className="add-button" type="button" onClick={openAdd}><Plus size={16} strokeWidth={2.5} /><span>Add</span></button>
+        <button className="add-button" type="button" onClick={openAdd}>
+          <Add size={15} />
+          <span>Add Skill</span>
+        </button>
       </section>
 
-      <section className="quick-actions" aria-label="Copy and CSV tools">
-        <button className="quick-action copy-all-action" type="button" disabled={!ready || skills.length === 0} onClick={() => void copyAsArray(skills, 'All skills')}><Clipboard size={14} /><span>Copy all</span></button>
-        <button className="quick-action" type="button" onClick={() => csvInputRef.current?.click()}><Upload size={14} /><span>Import CSV</span></button>
-        <button className="quick-action" type="button" disabled={!ready || skills.length === 0} onClick={exportCsv}><Download size={14} /><span>Export CSV</span></button>
-        <input ref={csvInputRef} className="visually-hidden" type="file" accept=".csv,text/csv" aria-label="Choose a single-column CSV file" onChange={handleCsvChange} />
+      <section className="quick-actions" aria-label="Quick operations">
+        <button
+          className="quick-action"
+          type="button"
+          disabled={!ready || skills.length === 0}
+          onClick={() => void copyAsArray(skills, 'All')}
+        >
+          <Copy size={13} />
+          <span>Copy All</span>
+        </button>
+        <button className="quick-action" type="button" onClick={() => csvInputRef.current?.click()}>
+          <CloudUpload size={13} />
+          <span>Import CSV</span>
+        </button>
+        <button
+          className="quick-action"
+          type="button"
+          disabled={!ready || skills.length === 0}
+          onClick={exportCsv}
+        >
+          <Download size={13} />
+          <span>Export CSV</span>
+        </button>
+        <input
+          ref={csvInputRef}
+          className="visually-hidden"
+          type="file"
+          accept=".csv,text/csv"
+          aria-label="Upload CSV"
+          onChange={handleCsvChange}
+        />
       </section>
 
-      <section className="selection-toolbar" aria-label="Select skills to copy">
-        <button className="selection-toggle" type="button" onClick={toggleVisibleSelection} disabled={!filteredSkills.length}><ListChecks size={14} /><span>{allVisibleSelected ? 'Deselect shown' : 'Select shown'}</span></button>
+      <section className="selection-toolbar" aria-label="Batch selection controls">
+        <button
+          className="selection-toggle"
+          type="button"
+          onClick={toggleVisibleSelection}
+          disabled={!filteredSkills.length}
+        >
+          <ListCheck size={14} />
+          <span>{allVisibleSelected ? 'Deselect visible' : 'Select visible'}</span>
+        </button>
         <span className="selection-count">{selectedSkills.length} selected</span>
-        <button className="copy-selected-action" type="button" disabled={!selectedSkills.length} onClick={() => void copyAsArray(selectedSkills, 'Selected skills')}><Clipboard size={14} /><span>Copy selected</span></button>
+        <button
+          className="copy-selected-action"
+          type="button"
+          disabled={!selectedSkills.length}
+          onClick={() => void copyAsArray(selectedSkills, 'Selected')}
+        >
+          <Copy size={13} />
+          <span>Copy selected</span>
+        </button>
       </section>
 
       <section className="list-heading">
-        <div>
-          <h2>Your collection <span className="count-pill">{skills.length}</span></h2>
-          <p>{query ? `${filteredSkills.length} matching ${filteredSkills.length === 1 ? 'skill' : 'skills'}` : 'Drag the handle to reorder'}</p>
-        </div>
-        <div className="storage-chip" title="Local text storage used">
-          <span className="storage-dot" />{storageLabel} <span className="storage-total">/ 5 MB</span>
+        <h2>
+          Skills
+          <span className="count-badge">{skills.length}</span>
+        </h2>
+        <div className="storage-chip" title="Local storage used">
+          <span className="storage-dot" />
+          <span>{storageLabel} / 5 MB</span>
         </div>
       </section>
 
-      {storageError && <div className="inline-warning" role="status">{storageError}</div>}
+      {storageError && (
+        <div className="inline-warning" role="status">
+          {storageError}
+        </div>
+      )}
 
-      <section className="skill-list" aria-label="Saved agent skills">
+      <section className="skill-list" aria-label="Skill items">
         {!ready ? (
-          <div className="loading-state"><span className="spinner" />Loading your shelf…</div>
-        ) : filteredSkills.length ? filteredSkills.map((skill, index) => (
-          <article
-            className={`skill-card ${draggedId === skill.id ? 'is-dragging' : ''} ${overId === skill.id ? 'is-drop-target' : ''} ${selectedIds.has(skill.id) ? 'is-selected' : ''}`}
-            key={skill.id}
-            draggable={true}
-            onDragStart={(event) => handleDragStart(event, skill.id)}
-            onDragEnd={() => { setDraggedId(null); setOverId(null); }}
-            onDragOver={(event) => { event.preventDefault(); setOverId(skill.id); event.dataTransfer.dropEffect = 'move'; }}
-            onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOverId(null); }}
-            onDrop={(event) => void handleDrop(event, skill.id)}
-          >
-            <div className="card-topline">
-              <div className="card-identity">
-                <label className="skill-checkbox-wrap" aria-label={`Select ${skill.name}`}>
-                  <input className="skill-checkbox" type="checkbox" checked={selectedIds.has(skill.id)} onChange={(event) => toggleSkillSelection(skill.id, event.currentTarget.checked)} />
-                </label>
-                <span className="skill-index">{String(index + 1).padStart(2, '0')}</span>
-              </div>
-              <div className="card-actions">
-                <div className="small-icon-button drag-handle" aria-label={`Drag to reorder ${skill.name}`} title="Drag to reorder">
-                  <GripVertical size={16} />
+          <div className="loading-state">
+            <span className="spinner" />
+            <span>Loading shelf...</span>
+          </div>
+        ) : filteredSkills.length ? (
+          filteredSkills.map((skill) => (
+            <article
+              className={`skill-card ${draggedId === skill.id ? 'is-dragging' : ''} ${
+                overId === skill.id ? 'is-drop-target' : ''
+              } ${selectedIds.has(skill.id) ? 'is-selected' : ''}`}
+              key={skill.id}
+              draggable={true}
+              onDragStart={(event) => handleDragStart(event, skill.id)}
+              onDragEnd={() => {
+                setDraggedId(null);
+                setOverId(null);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setOverId(skill.id);
+                event.dataTransfer.dropEffect = 'move';
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOverId(null);
+              }}
+              onDrop={(event) => void handleDrop(event, skill.id)}
+            >
+              <div className="card-topline">
+                <div className="card-identity">
+                  <label className="skill-checkbox-wrap" aria-label={`Select ${skill.name}`}>
+                    <input
+                      className="skill-checkbox"
+                      type="checkbox"
+                      checked={selectedIds.has(skill.id)}
+                      onChange={(event) => toggleSkillSelection(skill.id, event.currentTarget.checked)}
+                    />
+                  </label>
+                  <span className="skill-card-name">{skill.name}</span>
                 </div>
-                <button className="small-icon-button" type="button" aria-label={`Edit ${skill.name}`} title="Edit skill" onClick={() => openEdit(skill)}><Pencil size={14} /></button>
-                <button className="small-icon-button danger-button" type="button" aria-label={`Delete ${skill.name}`} title="Delete skill" onClick={() => void deleteSkill(skill.id)}><Trash2 size={14} /></button>
+                <div className="card-actions">
+                  <div
+                    className="small-icon-button drag-handle"
+                    aria-label={`Drag to reorder ${skill.name}`}
+                    title="Drag to reorder"
+                  >
+                    <Reorder size={14} />
+                  </div>
+                  <button
+                    className="small-icon-button"
+                    type="button"
+                    aria-label={`Edit ${skill.name}`}
+                    title="Edit skill"
+                    onClick={() => openEdit(skill)}
+                  >
+                    <Edit size={13} />
+                  </button>
+                  <button
+                    className="small-icon-button danger-button"
+                    type="button"
+                    aria-label={`Delete ${skill.name}`}
+                    title="Delete skill"
+                    onClick={() => void deleteSkill(skill.id)}
+                  >
+                    <Trash size={13} />
+                  </button>
+                </div>
               </div>
-            </div>
-            <h3>{skill.name}</h3>
-            <button className="command-copy" type="button" onClick={() => void copyCommand(skill)} title="Click to copy command">
-              <code>{skill.command}</code>
-              <span className={`copy-indicator ${copiedId === skill.id ? 'copied' : ''}`} aria-hidden="true">
-                {copiedId === skill.id ? <Check size={15} /> : <Clipboard size={15} />}
-              </span>
-            </button>
-            <div className="card-footer"><span><span className="terminal-mark">›_</span> INSTALL COMMAND</span><span className="copy-hint">Click to copy</span></div>
-          </article>
-        )) : (
+
+              <button
+                className="command-copy"
+                type="button"
+                onClick={() => void copyCommand(skill)}
+                title="Click to copy command"
+              >
+                <code>{skill.command}</code>
+                <span className={`copy-indicator ${copiedId === skill.id ? 'copied' : ''}`} aria-hidden="true">
+                  {copiedId === skill.id ? <Check size={14} /> : <Copy size={13} />}
+                </span>
+              </button>
+            </article>
+          ))
+        ) : (
           <div className="empty-state">
-            <div className="empty-icon"><Search size={20} /></div>
-            <h3>{query ? 'No skills found' : 'Your shelf is empty'}</h3>
-            <p>{query ? 'Try another search, or clear the filter.' : 'Add a skill command to get started.'}</p>
-            {query ? <button className="text-button" type="button" onClick={() => setQuery('')}>Clear search</button> : <button className="text-button" type="button" onClick={openAdd}>Add your first skill <ChevronDown size={14} /></button>}
+            <div className="empty-icon">
+              <Search size={18} />
+            </div>
+            <h3>{query ? 'No matching skills' : 'No skills in shelf'}</h3>
+            <p>{query ? 'Try checking your search query.' : 'Add your first command to get started.'}</p>
+            {query ? (
+              <button className="text-button" type="button" onClick={() => setQuery('')}>
+                Clear filter
+              </button>
+            ) : (
+              <button className="text-button" type="button" onClick={openAdd}>
+                Add skill <ChevronDown size={12} />
+              </button>
+            )}
           </div>
         )}
       </section>
 
-      <footer className="bottom-note"><span className="lock-mark">✳</span><span>Saved only in this browser. Export a CSV backup to keep a portable copy.</span></footer>
-
       {modalOpen && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setModalOpen(false); }}>
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setModalOpen(false);
+          }}
+        >
           <section className="editor-modal" role="dialog" aria-modal="true" aria-labelledby="editor-title">
             <div className="modal-header">
-              <div><p className="eyebrow">PERSONALIZE YOUR SHELF</p><h2 id="editor-title">{editingId ? 'Edit skill' : 'Add a skill'}</h2></div>
-              <button className="icon-button" type="button" aria-label="Close dialog" onClick={() => setModalOpen(false)}><X size={18} /></button>
+              <h2 id="editor-title">{editingId ? 'Edit Skill' : 'Add Skill'}</h2>
+              <button
+                className="icon-button"
+                type="button"
+                aria-label="Close dialog"
+                onClick={() => setModalOpen(false)}
+              >
+                <X size={16} />
+              </button>
             </div>
-            <p className="modal-subtitle">Save the command you want to reach in one click.</p>
             <form onSubmit={(event) => void saveDraft(event)}>
-              <label className="field-label" htmlFor="skill-name">Skill name</label>
-              <input id="skill-name" className="form-input" autoFocus maxLength={80} value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="e.g. Frontend Design" required />
-              <label className="field-label command-label" htmlFor="skill-command">Install command or prompt</label>
-              <textarea id="skill-command" className="form-input command-input" value={draftCommand} onChange={(event) => setDraftCommand(event.target.value)} placeholder="npx skills add owner/repo --skill name" maxLength={20000} rows={4} required />
-              <p className="field-help">Text only · saved locally · {Math.max(0, 20000 - draftCommand.length).toLocaleString()} characters left</p>
+              <label className="field-label" htmlFor="skill-name">
+                Name
+              </label>
+              <input
+                id="skill-name"
+                className="form-input"
+                autoFocus
+                maxLength={80}
+                value={draftName}
+                onChange={(event) => setDraftName(event.target.value)}
+                placeholder="e.g. Frontend Design"
+                required
+              />
+              <label className="field-label command-label" htmlFor="skill-command">
+                Command
+              </label>
+              <textarea
+                id="skill-command"
+                className="form-input command-input"
+                value={draftCommand}
+                onChange={(event) => setDraftCommand(event.target.value)}
+                placeholder="npx skills add owner/repo --skill name"
+                maxLength={20000}
+                rows={3}
+                required
+              />
               <div className="modal-actions">
-                <button className="secondary-button" type="button" onClick={() => setModalOpen(false)}>Cancel</button>
-                <button className="primary-button" type="submit"><Check size={16} />{editingId ? 'Save changes' : 'Add to shelf'}</button>
+                <button className="secondary-button" type="button" onClick={() => setModalOpen(false)}>
+                  Cancel
+                </button>
+                <button className="primary-button" type="submit">
+                  {editingId ? 'Save' : 'Add'}
+                </button>
               </div>
             </form>
           </section>
         </div>
       )}
 
-      {toast && <div className="toast" role="status"><Check size={15} />{toast}</div>}
+      {toast && (
+        <div className="toast" role="status">
+          <span className="toast-icon">
+            <Check size={14} />
+          </span>
+          <span>{toast}</span>
+        </div>
+      )}
     </main>
   );
 }

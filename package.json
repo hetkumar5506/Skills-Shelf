@@ -16,6 +16,7 @@
     "lucide-react": "^0.468.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "reicon-react": "^1.2.6",
     "wxt": "^0.21.4"
   },
   "devDependencies": {
