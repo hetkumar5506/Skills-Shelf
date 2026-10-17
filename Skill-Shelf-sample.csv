@@ -1,7 +1,12 @@
-﻿Skill
+Skill
 Hallmark :: npx skills add nutlope/hallmark
-Frontend Design :: npx skills add anthropics/skills --skill frontend-design
-Emil Kowalski Skills :: npx skills add emilkowalski/skills
-Impeccable :: npx skills add pbakaus/impeccable --skill impeccable
-Design Taste · Frontend :: npx skills add Leonxlnx/taste-skill --skill design-taste-frontend
 Ponytail :: npx skills add dietrichgebert/ponytail
+Find Skills :: npx skills add vercel-labs/skills@find-skills
+Cloudflare Security Audit :: npx skills add https://github.com/cloudflare/security-audit-skill --skill security-audit
+React Bits :: npx shadcn@latest add @react-bits/SplitText-TS-TW && npx jsrepo@latest add https://reactbits.dev/r/SplitText-TS-TW
+Spec Kit :: uv tool install specify-cli && specify init my-project --integration copilot && cd my-project
+Arena Skill :: npx skills add jakeschincariol/arena-skill
+Anatomy :: npx skills add wheresryan22/anatomy -g
+Skillry :: npx skills add skillry
+Public APIs :: git clone https://github.com/public-apis/public-apis.git
+shadcn/ui :: npx skills add shadcn/ui
