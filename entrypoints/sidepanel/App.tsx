@@ -131,6 +131,7 @@ function App() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [storageError, setStorageError] = useState('');
   const csvInputRef = useRef<HTMLInputElement>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -138,6 +139,10 @@ function App() {
       if (!active || areaName !== 'local') return;
       const changedSkills = changes[STORAGE_KEYS.skills];
       if (changedSkills) setSkills(Array.isArray(changedSkills.newValue) ? changedSkills.newValue as SkillItem[] : []);
+      const changedTheme = changes[STORAGE_KEYS.theme];
+      if (changedTheme && (changedTheme.newValue === 'light' || changedTheme.newValue === 'dark')) {
+        setTheme(changedTheme.newValue);
+      }
     };
     chrome.storage.onChanged.addListener(handleStorageChange);
 
@@ -168,11 +173,35 @@ function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  const showToast = useCallback((message: string) => {
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    setToast(message);
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast('');
+      toastTimerRef.current = null;
+    }, 2400);
+  }, []);
+
   useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(''), 2400);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
+    return () => {
+      if (toastTimerRef.current !== null) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modalOpen]);
 
   const persistSkills = useCallback(async (next: SkillItem[]) => {
     const bytes = estimateBytes(next);
@@ -210,33 +239,33 @@ function App() {
     try {
       await chrome.storage.local.set({ [STORAGE_KEYS.theme]: next });
     } catch {
-      setToast('Theme changed for this session');
+      showToast('Theme changed for this session');
     }
   };
 
   const copyCommand = async (skill: SkillItem) => {
     if (await writeClipboard(skill.command)) {
       setCopiedId(skill.id);
-      setToast(`${skill.name} copied to clipboard`);
+      showToast(`${skill.name} copied to clipboard`);
       window.setTimeout(() => setCopiedId((current) => current === skill.id ? null : current), 1600);
     } else {
-      setToast('Copy failed — try again');
+      showToast('Copy failed — try again');
     }
   };
 
   const copyAsArray = async (items: SkillItem[], label: string) => {
     if (!items.length) {
-      setToast('There are no skills to copy');
+      showToast('There are no skills to copy');
       return;
     }
     const arrayText = JSON.stringify(items.map((skill) => skill.command), null, 2);
-    if (await writeClipboard(arrayText)) setToast(`${label} copied as a command array`);
-    else setToast('Copy failed — try again');
+    if (await writeClipboard(arrayText)) showToast(`${label} copied as a command array`);
+    else showToast('Copy failed — try again');
   };
 
   const exportCsv = () => {
     if (!skills.length) {
-      setToast('Add a skill before exporting');
+      showToast('Add a skill before exporting');
       return;
     }
     const rows = [csvCell('Skill'), ...skills.map((skill) => csvCell(`${skill.name} :: ${skill.command}`))];
@@ -249,7 +278,7 @@ function App() {
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setToast('CSV backup downloaded');
+    showToast('CSV backup downloaded');
   };
 
   const importCsvFile = async (file: File) => {
@@ -258,7 +287,7 @@ function App() {
       const cells = parseSingleColumnCsv(csv);
       const parsed = cells.map(parseSkillCell).filter((entry): entry is { name: string; command: string } => entry !== null);
       if (!parsed.length) {
-        setToast('No skill commands found in that CSV');
+        showToast('No skill commands found in that CSV');
         return;
       }
 
@@ -277,14 +306,14 @@ function App() {
       }
 
       if (!additions.length) {
-        setToast(`Nothing new — ${skipped} duplicate ${skipped === 1 ? 'skill was' : 'skills were'} skipped`);
+        showToast(`Nothing new — ${skipped} duplicate ${skipped === 1 ? 'skill was' : 'skills were'} skipped`);
         return;
       }
       if (await persistSkills([...skills, ...additions])) {
-        setToast(`Imported ${additions.length}; skipped ${skipped} duplicate ${skipped === 1 ? 'skill' : 'skills'}`);
+        showToast(`Imported ${additions.length}; skipped ${skipped} duplicate ${skipped === 1 ? 'skill' : 'skills'}`);
       }
     } catch (error) {
-      setToast(error instanceof Error ? error.message : 'Could not read that CSV file');
+      showToast(error instanceof Error ? error.message : 'Could not read that CSV file');
     }
   };
 
@@ -339,7 +368,7 @@ function App() {
     }
     if (await persistSkills(next)) {
       setModalOpen(false);
-      setToast(editingId ? 'Skill updated' : 'Skill added');
+      showToast(editingId ? 'Skill updated' : 'Skill added');
     }
   };
 
@@ -351,7 +380,7 @@ function App() {
         next.delete(id);
         return next;
       });
-      setToast(`${skill?.name ?? 'Skill'} removed`);
+      showToast(`${skill?.name ?? 'Skill'} removed`);
     }
   };
 
@@ -377,7 +406,7 @@ function App() {
     if (!moved) return;
     if (sourceIndex < insertionIndex) insertionIndex -= 1;
     next.splice(insertionIndex, 0, moved);
-    if (await persistSkills(next)) setToast('Skill order saved');
+    if (await persistSkills(next)) showToast('Skill order saved');
   };
 
   return (
@@ -444,7 +473,7 @@ function App() {
           <article
             className={`skill-card ${draggedId === skill.id ? 'is-dragging' : ''} ${overId === skill.id ? 'is-drop-target' : ''} ${selectedIds.has(skill.id) ? 'is-selected' : ''}`}
             key={skill.id}
-            draggable={false}
+            draggable={true}
             onDragStart={(event) => handleDragStart(event, skill.id)}
             onDragEnd={() => { setDraggedId(null); setOverId(null); }}
             onDragOver={(event) => { event.preventDefault(); setOverId(skill.id); event.dataTransfer.dropEffect = 'move'; }}
@@ -459,9 +488,9 @@ function App() {
                 <span className="skill-index">{String(index + 1).padStart(2, '0')}</span>
               </div>
               <div className="card-actions">
-                <button className="small-icon-button drag-handle" type="button" draggable aria-label={`Drag to reorder ${skill.name}`} title="Drag to reorder" onClick={(event) => event.preventDefault()}>
+                <div className="small-icon-button drag-handle" aria-label={`Drag to reorder ${skill.name}`} title="Drag to reorder">
                   <GripVertical size={16} />
-                </button>
+                </div>
                 <button className="small-icon-button" type="button" aria-label={`Edit ${skill.name}`} title="Edit skill" onClick={() => openEdit(skill)}><Pencil size={14} /></button>
                 <button className="small-icon-button danger-button" type="button" aria-label={`Delete ${skill.name}`} title="Delete skill" onClick={() => void deleteSkill(skill.id)}><Trash2 size={14} /></button>
               </div>
