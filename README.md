@@ -1,97 +1,118 @@
-# Skill Shelf
+# Skill Shelf — Agent Skill Commands Extension
 
-A local-first Chrome extension for saving, organizing, backing up, and copying agent-skill install commands. Open the side panel, find a skill, copy one command or a JSON array of commands, and paste it into your agent chat.
+A fast, local-first Chrome side panel extension built with **WXT**, **React 19**, and **TypeScript** for collecting, managing, backing up, and executing AI agent skill install commands and CLI execution stacks.
 
-## Features
+Designed with a modern **shadcn-inspired aesthetic**, **Geist** typography, and **Reicon** iconography.
 
-- **Quick copy:** click any command to copy that command as plain text.
-- **Copy all / selected:** copy every command or only checked commands as a valid JSON array of strings, in the current shelf order.
-- **Single-column CSV backup:** export your collection to one CSV column and import it later.
-- **Safe merge on import:** commands already in the shelf are skipped; only new commands are appended, in CSV order. Re-importing the same file is safe and will not duplicate entries.
-- **Manage skills:** add, edit, delete, search, select, and drag to reorder.
-- **Light and dark themes:** preference is saved locally.
-- **Local-only:** no account, analytics, or network service. Only names, command text, order, and theme are stored by the extension.
-- **Responsive side panel:** adapts to a narrow Chrome side panel and respects reduced-motion preferences.
+---
 
-## CSV format and restore behavior
+## Key Features
 
-Use **Export CSV** before clearing extension storage or removing the extension. The downloaded CSV has exactly one column named `Skill`; each skill occupies one row. A row contains both its display name and command in the same cell, for example:
+- **One-Click Quick Copy**: Instant click-to-copy on any command card with visual confirmation indicators.
+- **Batch Export as JSON Array**:
+  - **Copy All**: Copies all shelf skills as a formatted JSON array string, ready to prompt into Claude, ChatGPT, Cursor, Copilot, or Antigravity agents.
+  - **Copy Selected**: Multi-select cards to generate targeted command arrays for specific projects.
+- **Drag-and-Drop Reordering**: Native smooth drag-and-drop to organize and prioritize your collection.
+- **Smart Filter & Search**: Instant, keyboard-friendly real-time filtering across skill titles and raw commands with a one-click clear button.
+- **CSV Backup & Restore (Zero Duplication)**:
+  - **Single-Column CSV**: Export your library to a clean, portable CSV (`Agent-Skills.csv`).
+  - **Smart Merge on Import**: Deduplicates automatically against normalized command text. Existing skills stay untouched in place; only new items are appended.
+- **Command Stacking**: Full support for chained command stacks (e.g., `uv tool install ... && specify init ...`).
+- **Dark & Light Modes**: Seamless theme switching with cross-window/tab sync persisted in `chrome.storage.local`.
+- **Accessible & Responsive**: Keyboard dialog dismissal (`Esc`), focus rings, accessible checkboxes, and dynamic side-panel width adaptation (320px–580px+).
+- **100% Private & Local-First**: No account, no background telemetry, no remote servers, and text-only storage bounded by a 5 MiB local guard.
+
+---
+
+## CSV Backup & Format
+
+The extension uses a single-column CSV format with the header `Skill`. Each row stores the display name and command:
 
 ```csv
 Skill
-"Hallmark :: npx skills add nutlope/hallmark"
-"Frontend Design :: npx skills add anthropics/skills --skill frontend-design"
+Hallmark :: npx skills add nutlope/hallmark
+Ponytail :: npx skills add dietrichgebert/ponytail
+Find Skills :: npx skills add vercel-labs/skills@find-skills
+Cloudflare Security Audit :: npx skills add https://github.com/cloudflare/security-audit-skill --skill security-audit
+React Bits :: npx shadcn@latest add @react-bits/SplitText-TS-TW && npx jsrepo@latest add https://reactbits.dev/r/SplitText-TS-TW
+Spec Kit :: uv tool install specify-cli && specify init my-project --integration copilot && cd my-project
+Arena Skill :: npx skills add jakeschincariol/arena-skill
+Anatomy :: npx skills add wheresryan22/anatomy -g
+Skillry :: npx skills add skillry
+Public APIs :: git clone https://github.com/public-apis/public-apis.git
+shadcn/ui :: npx skills add shadcn/ui
 ```
 
-Names are included so a backup restores the shelf as it looked. The importer also accepts a one-column CSV with just commands (no `Name ::` prefix); it will create a readable name from the command. Keep commas inside a cell quoted, as in standard CSV. `Skill-Shelf-sample.csv` is included as a six-row example.
+*A curated, ready-to-import template is included in [`Agent-Skills.csv`](Agent-Skills.csv).*
 
-### Merge examples
+### Import Merge Logic
+- **Existing Commands**: Skipped automatically without modifying titles or shelf positions.
+- **New Commands**: Appended to the bottom in CSV order.
+- **Plain Commands**: If a CSV row contains only a command without `Name ::`, Skill Shelf parses a readable title automatically.
 
-- Shelf has 5 commands; CSV has those 5 plus 2 new ones → **2 are appended**, and the original 5 keep their order.
-- Shelf is empty; CSV has 7 commands → **all 7 are added** in the CSV order.
-- A command is repeated in the CSV or already saved → it is **skipped**, not overwritten or duplicated.
+---
 
-Duplicate detection compares normalized command text. Existing skills are never renamed by an import; edit them in the extension if you want to change their display names.
+## Project Structure
 
-## Copy formats
-
-**Copy all** and **Copy selected** copy a JSON array containing the command strings, for example:
-
-```json
-[
-  "npx skills add nutlope/hallmark",
-  "npx skills add anthropics/skills --skill frontend-design"
-]
+```text
+Skill-Shelf-source/
+├── .agent/
+│   └── skills/                      # Local agent skills (Ponytail, Hallmark, Cloudflare Audit)
+├── entrypoints/
+│   ├── background.ts                # Background service worker (sidePanel trigger & seeding)
+│   └── sidepanel/
+│       ├── index.html               # Side panel HTML entrypoint (Geist & JetBrains Mono)
+│       ├── main.tsx                 # React DOM mount point
+│       ├── App.tsx                  # Core application, search, state & drag-and-drop
+│       └── style.css                # shadcn design system tokens, variables & responsive rules
+├── lib/
+│   └── types.ts                     # TypeScript definitions, storage keys & defaults
+├── public/
+│   └── icon/                        # Extension icons (16, 32, 48, 128 px)
+├── Agent-Skills.csv                 # Pre-configured sample CSV backup
+├── package.json                     # Dependencies & scripts
+├── tsconfig.json                    # Strict TypeScript configuration
+└── wxt.config.ts                    # WXT & Chrome Manifest V3 configuration
 ```
 
-The normal click-to-copy action on a skill card still copies only its raw command, without JSON formatting.
+---
 
-## Install in Chrome
+## Installation & Setup
 
 ### Requirements
+- **Node.js**: v20 or newer
+- **Browser**: Google Chrome, Brave, Arc, Edge, or any Chromium browser supporting the Side Panel API.
 
-- Node.js 22 or newer and npm 10 or newer for building from source.
-- Google Chrome or another Chromium browser with the Chrome Side Panel API.
-
-### Build from source
-
+### Build from Source
 ```bash
+# 1. Install dependencies
 npm install
+
+# 2. Validate types
 npm run typecheck
+
+# 3. Build extension
 npm run build
+
+# 4. (Optional) Create .zip package
+npm run zip
 ```
 
-The unpacked extension is generated at `.output/chrome-mv3`.
+---
 
-### Load the built extension
+## Loading into Chrome
 
-1. Open `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Click **Load unpacked** and select `.output/chrome-mv3`.
-4. Pin **Skill Shelf** from the extensions menu.
-5. Click its toolbar icon to open the side panel.
+1. Open Chrome and navigate to `chrome://extensions`.
+2. Toggle on **Developer mode** in the top right corner.
+3. Click **Load unpacked** in the top left.
+4. Select the `.output/chrome-mv3` folder inside this repository.
+5. Pin **Skill Shelf** to your toolbar and click the icon to open your shelf in the side panel.
 
-To use the packaged build, extract `Skill-Shelf-chrome-extension.zip` first, then choose the extracted folder with **Load unpacked**.
+---
 
-## Development commands
+## Permissions & Security
 
-```bash
-npm run dev        # WXT development mode
-npm run typecheck  # TypeScript validation
-npm run build      # Production extension in .output/chrome-mv3
-npm run zip        # WXT extension archive
-```
-
-## Data and privacy
-
-Skills are saved in `chrome.storage.local` on this browser. The app enforces a 5 MiB limit for saved skill data. Browser cache clearing and extension storage removal are different actions, but if the extension's local data is cleared or the extension is removed, restore your collection by installing Skill Shelf again and importing the CSV backup. Keep the CSV somewhere outside the browser profile.
-
-The first fresh install seeds the six example commands. If extension storage is later cleared, the shelf opens empty so you can restore from CSV; it will not re-seed the examples and create confusing duplicates.
-
-## Permissions
-
-- `sidePanel`: opens the Skill Shelf UI in Chrome's side panel.
-- `storage`: saves skills and theme locally.
-- `clipboardWrite`: copies commands and command arrays to the clipboard.
-
-The extension does not request access to webpages or send data to a server.
+- **`sidePanel`**: Renders the extension UI in the native browser side panel.
+- **`storage`**: Saves your collection locally in browser storage (`chrome.storage.local`).
+- **`clipboardWrite`**: Allows one-click copying of commands into your clipboard.
+- **Content Security**: No remote scripts, no trackers, and no external host permissions requested.
