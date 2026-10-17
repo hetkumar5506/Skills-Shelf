@@ -241,6 +241,7 @@ Anatomy :: npx skills add wheresryan22/anatomy -g
 Skillry :: npx skills add skillry
 Public APIs :: git clone https://github.com/public-apis/public-apis.git
 shadcn/ui :: npx skills add shadcn/ui
+Repomix Explorer :: npx skills add yamadashy/repomix --skill repomix-explorer
 ```
 
 *A curated, ready-to-import starter library is included in [`Agent-Skills.csv`](Agent-Skills.csv).*
