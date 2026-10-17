@@ -6,9 +6,9 @@ import {
   CloseCircle,
   CloudUpload,
   Copy,
+  DocumentNormal,
   Download,
   Edit,
-  Library,
   ListCheck,
   Moon,
   Reorder,
@@ -432,7 +432,7 @@ function App() {
       <header className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">
-            <Library size={18} />
+            <DocumentNormal size={18} weight="Filled" />
           </div>
           <h1>Skill Shelf</h1>
         </div>
