@@ -1,5 +1,16 @@
+# Dependencies
 node_modules/
+
+# Build artifacts & extensions
 .output/
 .wxt/
 *.zip
+
+# Local agent storage & skills
+.agent/
+.agents/
+
+# OS metadata & temporary files
 .DS_Store
+Thumbs.db
+*.log

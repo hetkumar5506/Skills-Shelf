@@ -1,6 +1,0 @@
-{
-  "hooks": {},
-  "modules": [
-    "./band/register.tsx"
-  ]
-}
