@@ -1,0 +1,10 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": [".wxt/types/**/*.d.ts", "entrypoints/**/*.ts", "entrypoints/**/*.tsx", "lib/**/*.ts", "wxt.config.ts"]
+}
