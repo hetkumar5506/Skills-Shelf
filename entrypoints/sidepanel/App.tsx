@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
 import {
   Add,
-  Bolt,
   Check,
   ChevronDown,
   CloseCircle,
@@ -9,6 +8,7 @@ import {
   Copy,
   Download,
   Edit,
+  Library,
   ListCheck,
   Moon,
   Reorder,
@@ -432,7 +432,7 @@ function App() {
       <header className="topbar">
         <div className="brand-lockup">
           <div className="brand-mark">
-            <Bolt size={18} />
+            <Library size={18} />
           </div>
           <h1>Skill Shelf</h1>
         </div>
