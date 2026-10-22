@@ -11,3 +11,15 @@ Skillry :: npx skills add skillry
 Public APIs :: git clone https://github.com/public-apis/public-apis.git
 shadcn/ui :: npx skills add shadcn/ui
 Repomix Explorer :: npx skills add yamadashy/repomix --skill repomix-explorer
+Web Design Guidelines :: npx skills add vercel-labs/agent-skills@web-design-guidelines
+Apple Design :: npx skills add emilkowalski/skills@apple-design
+Minimalist UI :: npx skills add leonxlnx/taste-skill@minimalist-ui
+Stitch Design Taste :: npx skills add leonxlnx/taste-skill@stitch-design-taste
+GPT Taste :: npx skills add leonxlnx/taste-skill@gpt-taste
+Pick UI Library :: npx skills add emilkowalski/skills@pick-ui-library
+Animate :: npx skills add emilkowalski/skills@animate
+Find Animation Opportunities :: npx skills add emilkowalski/skills@find-animation-opportunities
+Vercel React View Transitions :: npx skills add vercel-labs/agent-skills@vercel-react-view-transitions
+Framer Motion Animator :: npx skills add patricio0312rev/skills@framer-motion-animator
+Break UI :: npx skills add emilkowalski/skills@break-ui
+Iso Glow :: mkdir -p ~/.claude/skills && curl -fsSL https://iso-glow.vercel.app/iso-glow.tar.gz | tar -xz -C ~/.claude/skills
